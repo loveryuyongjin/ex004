@@ -24,16 +24,13 @@ small {
 	<h3>Ajax File Upload</h3>
 	<div class="fileDrop"></div>
 	
-	<div class="uploadList"></div>
+	<div class="uploadedList"></div>
 	
 	 <script src="http://code.jquery.com/jquery-1.11.3.min.js"></script>
 
 
+
 <script>
-
-
-
-
 
 	 $(".fileDrop").on("dragenter dragover", function(event) {
 		event.preventDefault();
@@ -59,13 +56,83 @@ small {
 			  processData: false,
 			  contentType: false,
 			  type: 'POST',
-			success:function(data){
-				alert(data);
+			  success:function(data){
+				
+				var str= "";
+				
+				console.log(data);
+				
+				console.log(checkImageType(data));
+				
+				 if(checkImageType(data)){
+					  str ="<div><a href=displayFile?fileName="+getImageLink(data)+">"
+							  +"<img src='displayFile?fileName="+data+"'/>"
+							  +"</a><small data-src="+data+">X</small></div>";
+				  }else{
+					  str = "<div><a href='displayFile?fileName="+data+"'>" 
+							  + getOriginalName(data)+"</a>"
+							  +"<small data-src="+data+">X</small></div></div>";
+				  }
+				
+				$(".uploadedList").append(str);
 			}
 		});
 		
 	}); 
 
+	//삭제처리
+	$(".uploadedList").on("click", "small", function(event){
+		
+		var that = $(this);
+		
+		$.ajax({
+			url:"deleteFile",
+			type:"post",
+			data : {fileName:$(this).attr("data-src")},
+			dataType:"text",
+			success:function(result){
+				if(result == 'deleted'){
+					that.parent("div").remove();
+				}
+			}
+		});
+	});
+
+	function checkImageType(fileName){
+	//정규식 : i 의 의미는 대, 소문자의 구분없음
+		var pattern = /jpg|gif|png|jpeg/i;
+		
+		return fileName.match(pattern);
+		
+	}
+	
+	//파일링크처리
+	function getOriginalName(fileName){
+		
+		if(checkImageType(fileName)){
+			
+			return;
+		}
+		
+		var idx = fileName.indexOf("_") + 1;
+		return fileName.substr(idx);
+	}
+	
+	//원본이미지가져오기 's_'
+	function getImageLink(fileName){
+		
+		if(!checkImageType(fileName)){
+			return;			
+		}
+		
+		var front = fileName.substr(0, 12);
+		var end = fileName.substr(14);
+		
+		return front + end;
+	}
+	
+	
+	
 </script>
 </body>
 </html>
